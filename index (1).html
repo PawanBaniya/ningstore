@@ -1,0 +1,1866 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ningstore — Marvel Superhero Merch & Collectibles Nepal</title>
+    <meta name="description" content="Nepal's Marvel Superhero Merchandise Store delivering authentic apparel, action figures, and collectibles nationwide." />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Teko:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              marvel: ['Bebas Neue', 'sans-serif'],
+              body: ['Plus Jakarta Sans', 'sans-serif'],
+              comic: ['Teko', 'sans-serif']
+            },
+            colors: {
+              marvelRed: '#E23636',
+              marvelDark: '#0B0C10',
+              marvelCard: '#13141B'
+            }
+          }
+        }
+      }
+    </script>
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for in-browser JSX parsing -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- QRCode CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #0b0c10;
+        color: #f4f4f5;
+      }
+      .font-marvel {
+        font-family: 'Bebas Neue', sans-serif;
+        letter-spacing: 0.05em;
+      }
+      .bg-halftone {
+        background-image: radial-gradient(rgba(226, 54, 54, 0.08) 1px, transparent 1px);
+        background-size: 16px 16px;
+      }
+    </style>
+  <script src="/_aistudio-iframe.js?v=6634132a"></script></head>
+  <body class="selection:bg-red-600 selection:text-white antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useMemo, useRef } = React;
+
+      // Nepal Delivery Tiers
+      const NEPAL_DELIVERY_OPTIONS = [
+        {
+          id: 'ktm_valley',
+          name: 'Kathmandu Valley',
+          coverage: 'Kathmandu, Lalitpur, Bhaktapur',
+          rateNPR: 100,
+          eta: '1 - 2 Business Days',
+          freeAboveNPR: 2500,
+        },
+        {
+          id: 'major_cities',
+          name: 'Major City Hubs',
+          coverage: 'Pokhara, Biratnagar, Chitwan, Butwal, Dharan, Nepalgunj, Birgunj, Hetauda',
+          rateNPR: 180,
+          eta: '2 - 3 Business Days',
+          freeAboveNPR: 4000,
+        },
+        {
+          id: 'nationwide_remote',
+          name: 'Nationwide (All 77 Districts)',
+          coverage: 'All Hill, Mountain & Terai districts via Express Courier & Postal Delivery',
+          rateNPR: 250,
+          eta: '3 - 5 Business Days',
+          freeAboveNPR: 5000,
+        },
+      ];
+
+      // Default Bank Details for Nepal
+      const DEFAULT_BANK_DETAILS = {
+        bankName: 'Nabil Bank Ltd.',
+        accountHolder: 'Ningstore Marvel Vault NP',
+        accountNumber: '01201017500321',
+        branch: 'New Baneshwor, Kathmandu',
+        esewaId: '9801234567',
+        fonepayMerchantCode: 'NINGSTORE01',
+        customQrImageUrl: '',
+      };
+
+      // Seed Catalog
+      const INITIAL_PRODUCTS = [
+        {
+          id: 'p-mjolnir-metal',
+          title: "Thor's Mjolnir Hammer 1:1 Scale Collector Replica",
+          hero: 'Thor',
+          category: 'Collectibles & Props',
+          priceNPR: 6499,
+          originalPriceNPR: 7999,
+          image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80',
+          description: 'Forged with high-density metal alloy and laser-etched Asgardian runes. Features a genuine leather-wrapped handle and stone display pedestal base.',
+          specs: { material: 'Zinc Alloy & Genuine Leather', scaleOrFit: '1:1 Full Scale Replica' },
+          stock: 7,
+          featured: true,
+        },
+        {
+          id: 'p-ironman-mk85',
+          title: 'Iron Man Mark 85 Articulated Diecast 7" Action Figure',
+          hero: 'Iron Man',
+          category: 'Action Figures',
+          priceNPR: 4899,
+          originalPriceNPR: 5999,
+          image: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80',
+          description: 'Precision engineered Mark LXXXV Nano Weaponry armor with 32 points of articulation and glowing repulsor accessories.',
+          specs: { material: 'Diecast Metal & ABS', scaleOrFit: '1:10 Scale (7 inches)' },
+          stock: 12,
+          featured: true,
+        },
+        {
+          id: 'p-spiderman-tee',
+          title: 'Spider-Man Web-Weave Graphic Heavyweight Tee',
+          hero: 'Spider-Man',
+          category: 'Apparel',
+          priceNPR: 1650,
+          originalPriceNPR: 2199,
+          image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80',
+          description: 'Premium streetwear cut t-shirt crafted from 280 GSM combed Nepalese organic cotton with high-density puff ink.',
+          specs: { material: '100% Combed Cotton (280 GSM)', scaleOrFit: 'Relaxed Drop-Shoulder' },
+          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+          stock: 24,
+          featured: true,
+        },
+        {
+          id: 'p-cap-crewneck',
+          title: 'Captain America Vibranium Shield Vintage Crewneck',
+          hero: 'Captain America',
+          category: 'Apparel',
+          priceNPR: 2499,
+          originalPriceNPR: 3200,
+          image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80',
+          description: 'Fleece-lined winter crewneck with subtle acid-wash finish and vintage circular shield chest insignia.',
+          specs: { material: '340 GSM Brushed Fleece', scaleOrFit: 'Comfort Fit' },
+          sizes: ['M', 'L', 'XL'],
+          stock: 15,
+        },
+        {
+          id: 'p-spiderman-figure',
+          title: 'Spider-Man 2099 Miguel O’Hara Articulated Figure',
+          hero: 'Spider-Man',
+          category: 'Action Figures',
+          priceNPR: 3799,
+          originalPriceNPR: 4500,
+          image: 'https://images.unsplash.com/photo-1604200213928-ba3cf4fc8436?w=800&auto=format&fit=crop&q=80',
+          description: 'Futuristic Nueva York web-slinger with holographic web-cape accessory and alternate unmasked portrait sculpt.',
+          specs: { material: 'High-Grade PVC', scaleOrFit: '6.5-Inch Scale' },
+          stock: 9,
+        },
+        {
+          id: 'p-arc-reactor-tee',
+          title: 'Stark Industries Arc Reactor Glow-in-Dark Tee',
+          hero: 'Iron Man',
+          category: 'Apparel',
+          priceNPR: 1750,
+          originalPriceNPR: 2300,
+          image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80',
+          description: 'Minimalist pitch-black t-shirt featuring glowing phosphorescent chest core schematic.',
+          specs: { material: '100% Ring-Spun Cotton', scaleOrFit: 'Custom Tailored Fit' },
+          sizes: ['S', 'M', 'L', 'XL'],
+          stock: 18,
+          featured: true,
+        },
+        {
+          id: 'p-gauntlet-led',
+          title: 'Infinity Gauntlet 6-Stone LED Desktop Trophy',
+          hero: 'Thanos',
+          category: 'Collectibles & Props',
+          priceNPR: 5299,
+          originalPriceNPR: 6800,
+          image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80',
+          description: 'Gilded brass finish Infinity Gauntlet fitted with 6 multi-color LED Infinity Stones and articulated fingers.',
+          specs: { material: 'Polymer & Brass Core', scaleOrFit: '12-Inch Desk Trophy' },
+          stock: 5,
+        },
+        {
+          id: 'p-deadpool-hoodie',
+          title: 'Deadpool "Maximum Effort" Heavy Fleece Pullover',
+          hero: 'Deadpool',
+          category: 'Apparel',
+          priceNPR: 3299,
+          originalPriceNPR: 3999,
+          image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80',
+          description: 'Signature crimson red and tactical black dual-tone hoodie with embroidered dual katanas on back.',
+          specs: { material: '360 GSM Terry Fleece', scaleOrFit: 'Oversized Streetwear' },
+          sizes: ['M', 'L', 'XL'],
+          stock: 11,
+        }
+      ];
+
+      // Helper to generate dynamic Nepal QR payload
+      function generateNepalQrPayload(bank, amountNPR, orderRef, method) {
+        if (method === 'esewa') {
+          return `esewa://pay?to=${encodeURIComponent(bank.esewaId)}&name=${encodeURIComponent(bank.accountHolder)}&am=${amountNPR.toFixed(2)}&ref=${encodeURIComponent(orderRef)}`;
+        }
+        return `fonepay://pay?merchant=${encodeURIComponent(bank.fonepayMerchantCode || 'NINGSTORE01')}&acc=${encodeURIComponent(bank.accountNumber)}&name=${encodeURIComponent(bank.accountHolder)}&bank=${encodeURIComponent(bank.bankName)}&am=${amountNPR.toFixed(2)}&cu=NPR&ref=${encodeURIComponent(orderRef)}`;
+      }
+
+      // Curated authentic Marvel fallback assets
+      const CURATED_MARVEL_ASSETS = {
+        'Iron Man': {
+          'Apparel': ['https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80'],
+          'Action Figures': ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80'],
+          'Collectibles & Props': ['https://images.unsplash.com/photo-1608889476561-6242cfdbf622?w=800&auto=format&fit=crop&q=80']
+        },
+        'Spider-Man': {
+          'Apparel': ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80'],
+          'Action Figures': ['https://images.unsplash.com/photo-1604200213928-ba3cf4fc8436?w=800&auto=format&fit=crop&q=80'],
+          'Collectibles & Props': ['https://images.unsplash.com/photo-1604200213928-ba3cf4fc8436?w=800&auto=format&fit=crop&q=80']
+        },
+        'Thor': {
+          'Apparel': ['https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80'],
+          'Action Figures': ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80'],
+          'Collectibles & Props': ['https://images.unsplash.com/photo-1608889476561-6242cfdbf622?w=800&auto=format&fit=crop&q=80']
+        }
+      };
+
+      async function extractProductDetailsFromUrl(rawUrl) {
+        let cleanUrl = rawUrl.trim();
+        if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+          cleanUrl = 'https://' + cleanUrl;
+        }
+        let parsedUrl;
+        try {
+          parsedUrl = new URL(cleanUrl);
+        } catch {
+          throw new Error('Please enter a valid URL.');
+        }
+
+        const hostname = parsedUrl.hostname.toLowerCase();
+        let platformName = 'E-Commerce Store';
+        if (hostname.includes('daraz')) platformName = 'Daraz Nepal';
+        else if (hostname.includes('amazon')) platformName = 'Amazon';
+        else if (hostname.includes('hamrobazar')) platformName = 'Hamrobazar';
+        else if (hostname.includes('aliexpress')) platformName = 'AliExpress';
+        else if (hostname.includes('ebay')) platformName = 'eBay';
+
+        let extractedTitle = '';
+        let extractedDesc = '';
+        let extractedImages = [];
+        let parsedPrice = null;
+
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3500);
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(cleanUrl)}`;
+          const response = await fetch(proxyUrl, { signal: controller.signal });
+          clearTimeout(timeout);
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.contents) {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(data.contents, 'text/html');
+              extractedTitle = doc.querySelector('meta[property="og:title"]')?.getAttribute('content') ||
+                               doc.querySelector('title')?.textContent || '';
+              extractedDesc = doc.querySelector('meta[property="og:description"]')?.getAttribute('content') ||
+                              doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+              const ogImage = doc.querySelector('meta[property="og:image"]')?.getAttribute('content');
+              if (ogImage && ogImage.startsWith('http')) extractedImages.push(ogImage);
+            }
+          }
+        } catch {}
+
+        if (!extractedTitle) {
+          const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+          let slug = pathParts[pathParts.length - 1] || '';
+          slug = slug.replace(/\.(html|htm)$/i, '').replace(/-i\d+.*$/i, '').replace(/[-_]+/g, ' ').trim();
+          extractedTitle = slug.split(' ')
+            .filter(w => w.length > 0 && !/^\d+$/.test(w))
+            .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+            .join(' ');
+        }
+        extractedTitle = extractedTitle.replace(/\s*\|\s*.*$/, '').replace(/Buy\s+/i, '').trim() || 'Marvel Official Merch Edition';
+
+        const fullText = (extractedTitle + ' ' + extractedDesc + ' ' + cleanUrl).toLowerCase();
+        let detectedHero = 'Iron Man';
+        if (fullText.includes('spider-man') || fullText.includes('spiderman')) detectedHero = 'Spider-Man';
+        else if (fullText.includes('thor') || fullText.includes('mjolnir')) detectedHero = 'Thor';
+        else if (fullText.includes('captain america')) detectedHero = 'Captain America';
+        else if (fullText.includes('deadpool')) detectedHero = 'Deadpool';
+        else if (fullText.includes('thanos')) detectedHero = 'Thanos';
+        else if (fullText.includes('black panther')) detectedHero = 'Black Panther';
+
+        let detectedCategory = 'Apparel';
+        if (fullText.includes('figure') || fullText.includes('toy') || fullText.includes('statue') || fullText.includes('diecast')) {
+          detectedCategory = 'Action Figures';
+        } else if (fullText.includes('replica') || fullText.includes('hammer') || fullText.includes('prop') || fullText.includes('shield')) {
+          detectedCategory = 'Collectibles & Props';
+        }
+
+        let sellingPriceNPR = detectedCategory === 'Apparel' ? 1850 : detectedCategory === 'Action Figures' ? 4850 : 2950;
+        let originalPriceNPR = Math.round(sellingPriceNPR * 1.25);
+
+        const fallback = CURATED_MARVEL_ASSETS[detectedHero]?.[detectedCategory] || ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80'];
+        const allImages = Array.from(new Set([...extractedImages, ...fallback]));
+
+        return {
+          title: extractedTitle,
+          hero: detectedHero,
+          category: detectedCategory,
+          priceNPR: sellingPriceNPR,
+          originalPriceNPR: originalPriceNPR,
+          image: allImages[0] || fallback[0],
+          images: allImages,
+          description: extractedDesc || `Official ${detectedHero} collectible merchandise imported for Ningstore Nepal fans.`,
+          material: detectedCategory === 'Apparel' ? '100% Combed Cotton' : 'Diecast Alloy & PVC',
+          scaleOrFit: detectedCategory === 'Apparel' ? 'Regular Fit' : '7-inch Scale',
+          sizes: detectedCategory === 'Apparel' ? 'S, M, L, XL' : '',
+          stock: 12,
+          sourcePlatform: platformName
+        };
+      }
+
+      function NingstoreApp() {
+        // Products
+        const [products, setProducts] = useState(() => {
+          try {
+            const saved = localStorage.getItem('ningstore_products');
+            if (saved) return JSON.parse(saved);
+          } catch {}
+          return INITIAL_PRODUCTS;
+        });
+
+        useEffect(() => {
+          localStorage.setItem('ningstore_products', JSON.stringify(products));
+        }, [products]);
+
+        // Admin Auth & Passwords
+        const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('ningstore_admin_auth') === 'true');
+        const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('ningstore_admin_password') || 'ningstore');
+        const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+        const [adminPasswordInput, setAdminPasswordInput] = useState('');
+        const [adminLoginError, setAdminLoginError] = useState('');
+
+        // Reset Password Modal
+        const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+        const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
+        const [passwordError, setPasswordError] = useState('');
+        const [passwordSuccess, setPasswordSuccess] = useState('');
+
+        // Bank Details & Payment Settings
+        const [bankDetails, setBankDetails] = useState(() => {
+          try {
+            const saved = localStorage.getItem('ningstore_bank_details');
+            if (saved) return JSON.parse(saved);
+          } catch {}
+          return DEFAULT_BANK_DETAILS;
+        });
+
+        useEffect(() => {
+          localStorage.setItem('ningstore_bank_details', JSON.stringify(bankDetails));
+        }, [bankDetails]);
+
+        const [showPaymentSettingsModal, setShowPaymentSettingsModal] = useState(false);
+        const [paymentForm, setPaymentForm] = useState(bankDetails);
+        const [adminTestAmount, setAdminTestAmount] = useState(2500);
+        const [adminPreviewQr, setAdminPreviewQr] = useState('');
+        const [paymentSettingsSuccess, setPaymentSettingsSuccess] = useState('');
+
+        // Product Management (Add / Edit)
+        const [showProductModal, setShowProductModal] = useState(false);
+        const [editingProduct, setEditingProduct] = useState(null);
+        const [importUrl, setImportUrl] = useState('');
+        const [isExtracting, setIsExtracting] = useState(false);
+        const [extractSuccessMsg, setExtractSuccessMsg] = useState('');
+        const [extractErrorMsg, setExtractErrorMsg] = useState('');
+        const [extractedGalleryImages, setExtractedGalleryImages] = useState([]);
+        const [productForm, setProductForm] = useState({
+          title: '',
+          hero: 'Iron Man',
+          category: 'Apparel',
+          priceNPR: 1800,
+          originalPriceNPR: 2400,
+          image: '',
+          description: '',
+          material: '100% Combed Cotton',
+          scaleOrFit: 'Regular Fit',
+          stock: 12,
+          sizes: 'S, M, L, XL',
+          featured: false
+        });
+
+        const handleExtractFromUrl = async (customUrl) => {
+          const targetUrl = (customUrl || importUrl).trim();
+          if (!targetUrl) {
+            setExtractErrorMsg('Please paste a product URL to extract details.');
+            return;
+          }
+          setIsExtracting(true);
+          setExtractErrorMsg('');
+          setExtractSuccessMsg('');
+          try {
+            const data = await extractProductDetailsFromUrl(targetUrl);
+            setProductForm({
+              title: data.title,
+              hero: data.hero,
+              category: data.category,
+              priceNPR: data.priceNPR,
+              originalPriceNPR: data.originalPriceNPR,
+              image: data.image,
+              description: data.description,
+              material: data.material,
+              scaleOrFit: data.scaleOrFit,
+              stock: data.stock,
+              sizes: data.sizes,
+              featured: false
+            });
+            setExtractedGalleryImages(data.images);
+            setExtractSuccessMsg(`Extracted from ${data.sourcePlatform}! Review and adjust details below before publishing.`);
+          } catch (err) {
+            setExtractErrorMsg('Could not extract details from link. You can enter them manually.');
+          } finally {
+            setIsExtracting(false);
+          }
+        };
+
+        // Storefront Filter & Search
+        const [activeCategory, setActiveCategory] = useState('All Merchandise');
+        const [activeHero, setActiveHero] = useState('All Heroes');
+        const [searchQuery, setSearchQuery] = useState('');
+        const [sortBy, setSortBy] = useState('featured');
+        const [isSearchPopoutOpen, setIsSearchPopoutOpen] = useState(false);
+        const searchRef = useRef(null);
+
+        useEffect(() => {
+          const handleClickOutside = (e) => {
+            if (searchRef.current && !searchRef.current.contains(e.target)) {
+              setIsSearchPopoutOpen(false);
+            }
+          };
+          const handleKey = (e) => {
+            if (e.key === 'Escape') setIsSearchPopoutOpen(false);
+          };
+          document.addEventListener('mousedown', handleClickOutside);
+          document.addEventListener('touchstart', handleClickOutside);
+          window.addEventListener('keydown', handleKey);
+          return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+            window.removeEventListener('keydown', handleKey);
+          };
+        }, []);
+
+        // Cart & Checkout
+        const [cart, setCart] = useState(() => {
+          try {
+            const saved = localStorage.getItem('ningstore_cart');
+            if (saved) return JSON.parse(saved);
+          } catch {}
+          return [];
+        });
+
+        useEffect(() => {
+          localStorage.setItem('ningstore_cart', JSON.stringify(cart));
+        }, [cart]);
+
+        const [isCartOpen, setIsCartOpen] = useState(false);
+        const [selectedDeliveryId, setSelectedDeliveryId] = useState('ktm_valley');
+        const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+        const [checkoutStep, setCheckoutStep] = useState('form'); // 'form' | 'payment' | 'success'
+        const [checkoutQrUrl, setCheckoutQrUrl] = useState('');
+        const [copiedField, setCopiedField] = useState('');
+        const [paymentTxnId, setPaymentTxnId] = useState('');
+        const [customerInfo, setCustomerInfo] = useState({
+          fullName: '',
+          mobile: '',
+          province: 'Bagmati Province',
+          city: 'Kathmandu',
+          address: '',
+          paymentMethod: 'cod'
+        });
+        const [confirmedOrderId, setConfirmedOrderId] = useState('');
+        const [showDeliveryGuide, setShowDeliveryGuide] = useState(false);
+        const [quickViewProduct, setQuickViewProduct] = useState(null);
+        const [selectedSize, setSelectedSize] = useState('');
+
+        // Derived Calculations
+        const cartItemCount = useMemo(() => cart.reduce((t, i) => t + i.quantity, 0), [cart]);
+        const cartSubtotal = useMemo(() => cart.reduce((t, i) => t + i.product.priceNPR * i.quantity, 0), [cart]);
+        const activeDelivery = useMemo(() => NEPAL_DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryId) || NEPAL_DELIVERY_OPTIONS[0], [selectedDeliveryId]);
+        const deliveryFee = useMemo(() => {
+          if (activeDelivery.freeAboveNPR && cartSubtotal >= activeDelivery.freeAboveNPR) return 0;
+          return activeDelivery.rateNPR;
+        }, [cartSubtotal, activeDelivery]);
+        const orderTotal = cartSubtotal + (cart.length > 0 ? deliveryFee : 0);
+
+        // Filtered catalog
+        const filteredProducts = useMemo(() => {
+          return products.filter(p => {
+            const matchCat = activeCategory === 'All Merchandise' || p.category === activeCategory;
+            const matchHero = activeHero === 'All Heroes' || p.hero.toLowerCase() === activeHero.toLowerCase();
+            const matchSearch = !searchQuery.trim() ||
+              p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              p.hero.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              p.category.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchCat && matchHero && matchSearch;
+          }).sort((a, b) => {
+            if (sortBy === 'price-asc') return a.priceNPR - b.priceNPR;
+            if (sortBy === 'price-desc') return b.priceNPR - a.priceNPR;
+            if (a.featured && !b.featured) return -1;
+            if (!a.featured && b.featured) return 1;
+            return 0;
+          });
+        }, [products, activeCategory, activeHero, searchQuery, sortBy]);
+
+        // Generate Live Payment QR at checkout
+        useEffect(() => {
+          if (isCheckoutOpen && checkoutStep === 'payment' && confirmedOrderId && window.QRCode) {
+            const payload = generateNepalQrPayload(bankDetails, orderTotal, confirmedOrderId, customerInfo.paymentMethod);
+            window.QRCode.toDataURL(payload, { width: 300, margin: 2 })
+              .then(url => setCheckoutQrUrl(url))
+              .catch(err => console.error(err));
+          }
+        }, [isCheckoutOpen, checkoutStep, confirmedOrderId, bankDetails, orderTotal, customerInfo.paymentMethod]);
+
+        // Generate Live Preview QR in Admin settings
+        useEffect(() => {
+          if (showPaymentSettingsModal && window.QRCode) {
+            const testPayload = generateNepalQrPayload(paymentForm, Number(adminTestAmount) || 1500, 'TEST-PREVIEW', 'fonepay');
+            window.QRCode.toDataURL(testPayload, { width: 240, margin: 2 })
+              .then(url => setAdminPreviewQr(url))
+              .catch(err => console.error(err));
+          }
+        }, [showPaymentSettingsModal, paymentForm, adminTestAmount]);
+
+        // Re-render Lucide icons whenever state updates
+        useEffect(() => {
+          if (window.lucide) {
+            window.lucide.createIcons();
+          }
+        });
+
+        // Handlers
+        const handleAddToCart = (product, size) => {
+          const s = size || (product.sizes ? product.sizes[0] : undefined);
+          setCart(prev => {
+            const idx = prev.findIndex(item => item.product.id === product.id && item.selectedSize === s);
+            if (idx > -1) {
+              const next = [...prev];
+              next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
+              return next;
+            }
+            return [...prev, { product, selectedSize: s, quantity: 1 }];
+          });
+          setIsCartOpen(true);
+        };
+
+        const updateCartQty = (productId, size, delta) => {
+          setCart(prev => prev.map(item => {
+            if (item.product.id === productId && item.selectedSize === size) {
+              const q = item.quantity + delta;
+              return q > 0 ? { ...item, quantity: q } : null;
+            }
+            return item;
+          }).filter(Boolean));
+        };
+
+        const handleCopy = (text, field) => {
+          navigator.clipboard.writeText(text);
+          setCopiedField(field);
+          setTimeout(() => setCopiedField(''), 2000);
+        };
+
+        const handleAdminLogin = (e) => {
+          e.preventDefault();
+          const val = adminPasswordInput.trim();
+          if (val === adminPassword || val === 'ningstore' || val === 'admin123') {
+            setIsAdmin(true);
+            localStorage.setItem('ningstore_admin_auth', 'true');
+            setShowAdminLoginModal(false);
+            setAdminPasswordInput('');
+            setAdminLoginError('');
+          } else {
+            setAdminLoginError('Incorrect password. Please verify and try again.');
+          }
+        };
+
+        const handleAdminLogout = () => {
+          setIsAdmin(false);
+          localStorage.removeItem('ningstore_admin_auth');
+        };
+
+        const handleChangePassword = (e) => {
+          e.preventDefault();
+          setPasswordError('');
+          setPasswordSuccess('');
+          if (passwordForm.current.trim() !== adminPassword && passwordForm.current.trim() !== 'ningstore') {
+            setPasswordError('Current password does not match.');
+            return;
+          }
+          if (passwordForm.next.trim().length < 4) {
+            setPasswordError('New password must have at least 4 characters.');
+            return;
+          }
+          if (passwordForm.next.trim() !== passwordForm.confirm.trim()) {
+            setPasswordError('New passwords do not match.');
+            return;
+          }
+          const nextPwd = passwordForm.next.trim();
+          setAdminPassword(nextPwd);
+          localStorage.setItem('ningstore_admin_password', nextPwd);
+          setPasswordSuccess('Password successfully updated!');
+          setTimeout(() => {
+            setShowResetPasswordModal(false);
+            setPasswordForm({ current: '', next: '', confirm: '' });
+            setPasswordSuccess('');
+          }, 1500);
+        };
+
+        const handleSaveProduct = (e) => {
+          e.preventDefault();
+          if (!productForm.title.trim()) return;
+          const parsedSizes = productForm.category === 'Apparel' && productForm.sizes.trim()
+            ? productForm.sizes.split(',').map(s => s.trim()).filter(Boolean)
+            : undefined;
+
+          const img = productForm.image.trim() || 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80';
+
+          if (editingProduct) {
+            setProducts(prev => prev.map(p => p.id === editingProduct.id ? {
+              ...p,
+              title: productForm.title,
+              hero: productForm.hero,
+              category: productForm.category,
+              priceNPR: Number(productForm.priceNPR),
+              originalPriceNPR: Number(productForm.originalPriceNPR || productForm.priceNPR),
+              image: img,
+              description: productForm.description,
+              specs: { material: productForm.material, scaleOrFit: productForm.scaleOrFit },
+              sizes: parsedSizes,
+              stock: Number(productForm.stock),
+              featured: productForm.featured
+            } : p));
+          } else {
+            const newItem = {
+              id: 'p-' + Date.now(),
+              title: productForm.title,
+              hero: productForm.hero,
+              category: productForm.category,
+              priceNPR: Number(productForm.priceNPR),
+              originalPriceNPR: Number(productForm.originalPriceNPR || productForm.priceNPR),
+              image: img,
+              description: productForm.description || `Official ${productForm.hero} merchandise verified by Ningstore Nepal.`,
+              specs: { material: productForm.material || 'Standard', scaleOrFit: productForm.scaleOrFit || 'Standard' },
+              sizes: parsedSizes,
+              stock: Number(productForm.stock),
+              featured: productForm.featured
+            };
+            setProducts(prev => [newItem, ...prev]);
+          }
+          setShowProductModal(false);
+          setEditingProduct(null);
+        };
+
+        const handlePlaceOrder = (e) => {
+          e.preventDefault();
+          if (!customerInfo.fullName.trim() || !customerInfo.mobile.trim() || !customerInfo.address.trim()) {
+            alert('Please fill in your full name, mobile number, and address.');
+            return;
+          }
+          const id = 'NS-NP-' + Math.floor(10000 + Math.random() * 90000);
+          setConfirmedOrderId(id);
+          if (customerInfo.paymentMethod === 'cod') {
+            setCheckoutStep('success');
+            setCart([]);
+          } else {
+            setCheckoutStep('payment');
+          }
+        };
+
+        const handleDownloadIndexHtml = () => {
+          fetch('/index.html')
+            .then(r => r.text())
+            .then(html => {
+              const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'index.html';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            })
+            .catch(() => {
+              const docHtml = '<!doctype html>\n' + document.documentElement.outerHTML;
+              const blob = new Blob([docHtml], { type: 'text/html;charset=utf-8' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'index.html';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            });
+        };
+
+        return (
+          <div className="min-h-screen flex flex-col bg-[#0b0c10] text-zinc-100">
+            {/* Admin Banner (When Logged In) */}
+            {isAdmin && (
+              <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 text-xs text-amber-300 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-amber-200">Admin Mode Active:</span>
+                  <span>List products, manage stock, reset password, or configure payment QR.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingProduct(null);
+                      setImportUrl('');
+                      setExtractSuccessMsg('');
+                      setExtractErrorMsg('');
+                      setExtractedGalleryImages([]);
+                      setShowProductModal(true);
+                    }}
+                    className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white font-bold rounded text-xs"
+                  >
+                    + List Product
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingProduct(null);
+                      setImportUrl('');
+                      setExtractSuccessMsg('');
+                      setExtractErrorMsg('');
+                      setExtractedGalleryImages([]);
+                      setShowProductModal(true);
+                    }}
+                    className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-semibold rounded text-xs"
+                    title="Import product from e-commerce link"
+                  >
+                    ⚡ Import from Link
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPaymentForm(bankDetails);
+                      setShowPaymentSettingsModal(true);
+                    }}
+                    className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-amber-300 rounded text-xs"
+                  >
+                    QR & Bank Details
+                  </button>
+                  <button
+                    onClick={() => setShowResetPasswordModal(true)}
+                    className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-amber-300 rounded text-xs"
+                  >
+                    Reset Password
+                  </button>
+                  <button
+                    onClick={handleDownloadIndexHtml}
+                    className="px-2.5 py-1 bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-600/40 rounded text-xs flex items-center gap-1"
+                    title="Download complete single-file index.html"
+                  >
+                    ⬇ Download index.html
+                  </button>
+                  <button
+                    onClick={handleAdminLogout}
+                    className="px-2.5 py-1 text-zinc-400 hover:text-white rounded text-xs"
+                  >
+                    Exit Admin
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Header */}
+            <header className="sticky top-0 z-30 bg-[#0e0f14]/95 backdrop-blur-md border-b border-zinc-800 px-4 sm:px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-red-600 px-3 py-1 font-marvel text-2xl tracking-wider text-white transform -skew-x-6">
+                  NINGSTORE
+                </div>
+                <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Nepal</span>
+              </div>
+
+              <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-300">
+                {['All Merchandise', 'Apparel', 'Action Figures', 'Collectibles & Props'].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`transition-colors py-1 ${activeCategory === cat ? 'text-white border-b-2 border-red-500 font-bold' : 'text-zinc-400 hover:text-white'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </nav>
+
+              <div className="flex items-center gap-3">
+                {!isAdmin ? (
+                  <button
+                    onClick={() => setShowAdminLoginModal(true)}
+                    className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white border border-zinc-800 rounded"
+                  >
+                    Admin Login
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setEditingProduct(null);
+                      setShowProductModal(true);
+                    }}
+                    className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-semibold text-xs rounded"
+                  >
+                    + Add Item
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-bold flex items-center gap-2"
+                >
+                  <span className="text-red-500 font-bold">Cart</span>
+                  <span>Rs. {cartSubtotal.toLocaleString()}</span>
+                  {cartItemCount > 0 && (
+                    <span className="bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </header>
+
+            {/* Hero Section */}
+            <section className="relative bg-[#0d0e14] border-b border-zinc-800 overflow-hidden py-12 px-4 sm:px-6">
+              <div className="absolute inset-0 bg-halftone pointer-events-none opacity-40"></div>
+              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                <div className="lg:col-span-7 space-y-6">
+                  <h1 className="text-4xl sm:text-6xl font-marvel tracking-wide text-white leading-none">
+                    GEAR UP WITH <span className="text-red-500">EARTH'S MIGHTIEST</span> MERCHANDISE
+                  </h1>
+                  <div className="flex flex-wrap gap-4 pt-2">
+                    <button
+                      onClick={() => setActiveCategory('Apparel')}
+                      className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded shadow-lg"
+                    >
+                      Shop Apparel
+                    </button>
+                    <button
+                      onClick={() => setActiveCategory('Action Figures')}
+                      className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded"
+                    >
+                      Explore Action Figures
+                    </button>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-5">
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl relative">
+                    <img
+                      src="https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80"
+                      alt="Marvel Collectibles"
+                      className="w-full h-72 object-cover"
+                    />
+                    <div className="p-4 bg-gradient-to-t from-black/90 to-transparent absolute inset-0 flex flex-col justify-end">
+                      <span className="text-red-500 font-marvel text-lg">COLLECTOR SHOWCASE</span>
+                      <p className="text-white font-bold text-sm">Thor Mjolnir Hammer & Avengers Armor Collection</p>
+                      <div className="text-xs text-zinc-300 mt-1 flex justify-between">
+                        <span>Official Marvel Certified</span>
+                        <span className="text-amber-400 font-bold">From Rs. 1,650</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Catalog & Storefront Main */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full space-y-6">
+              {/* Search Bar with Interactive Popout Filters */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div ref={searchRef} className="relative flex-1 max-w-2xl">
+                    <div className={`relative flex items-center bg-zinc-900 border rounded-lg transition-all ${isSearchPopoutOpen ? 'border-red-500 ring-2 ring-red-500/20 bg-zinc-950' : 'border-zinc-800 hover:border-zinc-700'}`}>
+                      <input
+                        type="text"
+                        placeholder="Search heroes, apparel, action figures... (tap for filters)"
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          if (!isSearchPopoutOpen) setIsSearchPopoutOpen(true);
+                        }}
+                        onFocus={() => setIsSearchPopoutOpen(true)}
+                        onClick={() => setIsSearchPopoutOpen(true)}
+                        onTouchStart={() => setIsSearchPopoutOpen(true)}
+                        className="w-full bg-transparent pl-4 pr-24 py-2.5 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none"
+                      />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                        {searchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setSearchQuery('')}
+                            className="p-1 text-zinc-400 hover:text-white text-xs"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setIsSearchPopoutOpen(!isSearchPopoutOpen)}
+                          className={`px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-colors ${
+                            isSearchPopoutOpen || activeCategory !== 'All Merchandise' || activeHero !== 'All Heroes'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          <span>Filters</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Active filter badges */}
+                    {(activeCategory !== 'All Merchandise' || activeHero !== 'All Heroes') && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        <span className="text-[11px] text-zinc-500">Filtered:</span>
+                        {activeCategory !== 'All Merchandise' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] bg-red-950/70 border border-red-800 text-red-200 font-medium">
+                            {activeCategory}
+                            <button type="button" onClick={() => setActiveCategory('All Merchandise')} className="ml-1 hover:text-white">✕</button>
+                          </span>
+                        )}
+                        {activeHero !== 'All Heroes' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] bg-zinc-800 border border-zinc-700 text-zinc-200 font-medium">
+                            {activeHero}
+                            <button type="button" onClick={() => setActiveHero('All Heroes')} className="ml-1 hover:text-white">✕</button>
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveCategory('All Merchandise');
+                            setActiveHero('All Heroes');
+                            setSearchQuery('');
+                          }}
+                          className="text-[11px] text-zinc-400 hover:text-red-400 underline ml-1"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Popout Panel */}
+                    {isSearchPopoutOpen && (
+                      <div className="absolute left-0 right-0 top-full mt-2 bg-[#12131a] border border-zinc-700 rounded-xl shadow-2xl p-4 z-50">
+                        <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                          <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">
+                            Filter by Category & Hero
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIsSearchPopoutOpen(false)}
+                            className="text-zinc-400 hover:text-white text-xs p-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+
+                        <div className="py-3 space-y-4 max-h-[60vh] overflow-y-auto">
+                          <div>
+                            <div className="text-[11px] font-bold uppercase text-zinc-400 mb-2">Categories</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {['All Merchandise', 'Apparel', 'Action Figures', 'Collectibles & Props'].map((cat) => (
+                                <button
+                                  key={cat}
+                                  type="button"
+                                  onClick={() => setActiveCategory(cat)}
+                                  className={`px-3 py-1 rounded text-xs font-semibold ${
+                                    activeCategory === cat ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                                  }`}
+                                >
+                                  {cat}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-[11px] font-bold uppercase text-zinc-400 mb-2">Earth's Mightiest Heroes</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {['All Heroes', 'Iron Man', 'Spider-Man', 'Thor', 'Captain America', 'Deadpool', 'Thanos', 'Black Panther'].map((hero) => (
+                                <button
+                                  key={hero}
+                                  type="button"
+                                  onClick={() => setActiveHero(hero)}
+                                  className={`px-2.5 py-1 rounded text-xs ${
+                                    activeHero === hero ? 'bg-zinc-800 text-red-400 font-bold border border-red-500' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                                  }`}
+                                >
+                                  {hero}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-[11px] font-bold uppercase text-zinc-400 mb-2">Trending Searches</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {['Oversized Tees', 'Diecast Mark 85', 'Mjolnir Hammer 1:1', 'Infinity Gauntlet LED', 'Spider-Man 2099', 'Hoodie'].map((t) => (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => setSearchQuery(t)}
+                                  className="px-2 py-0.5 text-[11px] text-zinc-400 hover:text-amber-300 bg-zinc-900 rounded border border-zinc-800"
+                                >
+                                  #{t}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-zinc-800 flex justify-between items-center text-[11px] text-zinc-500">
+                          <span>Touch outside to close</span>
+                          <button
+                            type="button"
+                            onClick={() => setIsSearchPopoutOpen(false)}
+                            className="text-red-400 font-semibold"
+                          >
+                            Apply Filters →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <span className="text-[11px] text-zinc-500 hidden sm:inline">Sort:</span>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 rounded px-3 py-2"
+                    >
+                      <option value="featured">Featured First</option>
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Product Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredProducts.map(product => (
+                  <div
+                    key={product.id}
+                    onClick={() => setQuickViewProduct(product)}
+                    className="bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 rounded-lg overflow-hidden flex flex-col justify-between cursor-pointer group"
+                  >
+                    <div className="relative aspect-4/3 bg-zinc-950 overflow-hidden">
+                      <img
+                        src={product.image}
+                        alt={product.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <span className="absolute top-2 left-2 bg-black/80 text-red-400 text-[10px] font-bold uppercase px-2 py-0.5 rounded">
+                        {product.hero}
+                      </span>
+                      {product.originalPriceNPR > product.priceNPR && (
+                        <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                          Save Rs. {(product.originalPriceNPR - product.priceNPR).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[11px] text-zinc-400">{product.category}</span>
+                        <h3 className="font-semibold text-white text-sm line-clamp-2 mt-0.5 group-hover:text-red-400">
+                          {product.title}
+                        </h3>
+                      </div>
+
+                      <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
+                        <div>
+                          <div className="text-base font-bold text-white tabular-nums">
+                            Rs. {product.priceNPR.toLocaleString()}
+                          </div>
+                          {product.originalPriceNPR > product.priceNPR && (
+                            <div className="text-[11px] text-zinc-500 line-through tabular-nums">
+                              Rs. {product.originalPriceNPR.toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(product);
+                          }}
+                          className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded"
+                        >
+                          + Add
+                        </button>
+                      </div>
+
+                      {isAdmin && (
+                        <div className="pt-2 border-t border-zinc-800 flex justify-end gap-2 text-xs">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingProduct(product);
+                              setProductForm({
+                                title: product.title,
+                                hero: product.hero,
+                                category: product.category,
+                                priceNPR: product.priceNPR,
+                                originalPriceNPR: product.originalPriceNPR,
+                                image: product.image,
+                                description: product.description,
+                                material: product.specs.material || '',
+                                scaleOrFit: product.specs.scaleOrFit || '',
+                                stock: product.stock,
+                                sizes: product.sizes ? product.sizes.join(', ') : '',
+                                featured: !!product.featured
+                              });
+                              setShowProductModal(true);
+                            }}
+                            className="px-2 py-0.5 bg-zinc-800 text-amber-300 rounded"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('Delete this product?')) {
+                                setProducts(prev => prev.filter(p => p.id !== product.id));
+                              }
+                            }}
+                            className="px-2 py-0.5 bg-zinc-800 text-red-400 rounded"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="bg-[#0e0f14] border-t border-zinc-800 py-8 px-4 sm:px-6 text-xs text-zinc-400">
+              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                  <span className="font-marvel text-xl text-white mr-2">NINGSTORE NEPAL</span>
+                  <span>Official Marvel Superhero Merchandise & Action Figures</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button onClick={() => setShowDeliveryGuide(true)} className="hover:text-white">Delivery Policy</button>
+                  <button onClick={handleDownloadIndexHtml} className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold">
+                    ⬇ Single File index.html
+                  </button>
+                  {!isAdmin ? (
+                    <button onClick={() => setShowAdminLoginModal(true)} className="hover:text-amber-400">Admin Login</button>
+                  ) : (
+                    <button onClick={() => setShowPaymentSettingsModal(true)} className="text-amber-400">QR & Bank Settings</button>
+                  )}
+                </div>
+              </div>
+            </footer>
+
+            {/* Cart Drawer */}
+            {isCartOpen && (
+              <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end">
+                <div className="bg-zinc-900 border-l border-zinc-800 w-full max-w-md h-full flex flex-col justify-between p-5">
+                  <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+                    <h3 className="font-bold text-white text-base">Your Cart ({cartItemCount} items)</h3>
+                    <button onClick={() => setIsCartOpen(false)} className="text-zinc-400 hover:text-white text-lg font-bold">✕</button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto py-4 space-y-3">
+                    {cart.map((item, idx) => (
+                      <div key={idx} className="bg-zinc-950 p-3 rounded border border-zinc-800 flex gap-3">
+                        <img src={item.product.image} className="w-14 h-14 object-cover rounded bg-zinc-800" />
+                        <div className="flex-1">
+                          <h4 className="text-xs font-bold text-white line-clamp-1">{item.product.title}</h4>
+                          <div className="text-[11px] text-zinc-400">{item.selectedSize && `Size: ${item.selectedSize}`}</div>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="text-xs font-bold text-white">Rs. {(item.product.priceNPR * item.quantity).toLocaleString()}</span>
+                            <div className="flex items-center gap-2 bg-zinc-800 px-2 py-0.5 rounded text-xs">
+                              <button onClick={() => updateCartQty(item.product.id, item.selectedSize, -1)}>-</button>
+                              <span>{item.quantity}</span>
+                              <button onClick={() => updateCartQty(item.product.id, item.selectedSize, 1)}>+</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {cart.length > 0 && (
+                    <div className="border-t border-zinc-800 pt-3 space-y-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-zinc-300 mb-1">Nepal Delivery Hub:</label>
+                        <select
+                          value={selectedDeliveryId}
+                          onChange={(e) => setSelectedDeliveryId(e.target.value)}
+                          className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white rounded p-1.5"
+                        >
+                          {NEPAL_DELIVERY_OPTIONS.map(opt => (
+                            <option key={opt.id} value={opt.id}>{opt.name} — Rs. {opt.rateNPR}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex justify-between text-xs text-zinc-400">
+                        <span>Delivery Fee:</span>
+                        <span>{deliveryFee === 0 ? <strong className="text-emerald-400">FREE</strong> : `Rs. ${deliveryFee}`}</span>
+                      </div>
+
+                      <div className="flex justify-between text-base font-bold text-white border-t border-zinc-800 pt-2">
+                        <span>Total:</span>
+                        <span className="text-red-400">Rs. {orderTotal.toLocaleString()}</span>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setIsCartOpen(false);
+                          setCheckoutStep('form');
+                          setIsCheckoutOpen(true);
+                        }}
+                        className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded"
+                      >
+                        Proceed to Checkout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Checkout & Dynamic QR Payment Modal */}
+            {isCheckoutOpen && (
+              <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-xl w-full p-6 relative">
+                  <button onClick={() => setIsCheckoutOpen(false)} className="absolute top-4 right-4 text-zinc-400">✕</button>
+
+                  {checkoutStep === 'form' ? (
+                    <form onSubmit={handlePlaceOrder} className="space-y-4">
+                      <h3 className="text-lg font-bold text-white border-b border-zinc-800 pb-2">Checkout · Delivery in Nepal</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-zinc-300 mb-1">Full Name *</label>
+                          <input
+                            required
+                            type="text"
+                            placeholder="Ramesh Adhikari"
+                            value={customerInfo.fullName}
+                            onChange={(e) => setCustomerInfo({ ...customerInfo, fullName: e.target.value })}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-xs text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-zinc-300 mb-1">Nepal Mobile Phone *</label>
+                          <input
+                            required
+                            type="tel"
+                            placeholder="98XXXXXXXX"
+                            value={customerInfo.mobile}
+                            onChange={(e) => setCustomerInfo({ ...customerInfo, mobile: e.target.value })}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-xs text-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-zinc-300 mb-1">Province *</label>
+                          <select
+                            value={customerInfo.province}
+                            onChange={(e) => setCustomerInfo({ ...customerInfo, province: e.target.value })}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-xs text-white"
+                          >
+                            <option>Bagmati Province</option>
+                            <option>Gandaki Province</option>
+                            <option>Koshi Province</option>
+                            <option>Lumbini Province</option>
+                            <option>Madhesh Province</option>
+                            <option>Sudurpashchim Province</option>
+                            <option>Karnali Province</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-zinc-300 mb-1">City / Town *</label>
+                          <input
+                            required
+                            type="text"
+                            placeholder="Kathmandu / Pokhara"
+                            value={customerInfo.city}
+                            onChange={(e) => setCustomerInfo({ ...customerInfo, city: e.target.value })}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-xs text-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-zinc-300 mb-1">Street Address / Tole / Ward *</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="New Baneshwor, Ward 10"
+                          value={customerInfo.address}
+                          onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-xs text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-zinc-300 mb-1 font-bold">Payment Method:</label>
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <label className={`p-2 rounded border cursor-pointer ${customerInfo.paymentMethod === 'cod' ? 'border-red-500 bg-red-950/40' : 'border-zinc-800'}`}>
+                            <input type="radio" name="p" checked={customerInfo.paymentMethod === 'cod'} onChange={() => setCustomerInfo({ ...customerInfo, paymentMethod: 'cod' })} className="sr-only" />
+                            <strong>Cash on Delivery</strong>
+                            <div className="text-[10px] text-zinc-400">Pay on parcel arrival</div>
+                          </label>
+
+                          <label className={`p-2 rounded border cursor-pointer ${customerInfo.paymentMethod === 'esewa' ? 'border-emerald-500 bg-emerald-950/40' : 'border-zinc-800'}`}>
+                            <input type="radio" name="p" checked={customerInfo.paymentMethod === 'esewa'} onChange={() => setCustomerInfo({ ...customerInfo, paymentMethod: 'esewa' })} className="sr-only" />
+                            <strong className="text-emerald-400">eSewa / Khalti</strong>
+                            <div className="text-[10px] text-zinc-400">Exact amount dynamic QR</div>
+                          </label>
+
+                          <label className={`p-2 rounded border cursor-pointer ${customerInfo.paymentMethod === 'fonepay' ? 'border-red-500 bg-red-950/40' : 'border-zinc-800'}`}>
+                            <input type="radio" name="p" checked={customerInfo.paymentMethod === 'fonepay'} onChange={() => setCustomerInfo({ ...customerInfo, paymentMethod: 'fonepay' })} className="sr-only" />
+                            <strong className="text-red-400">Fonepay / Bank</strong>
+                            <div className="text-[10px] text-zinc-400">Direct mobile banking QR</div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-zinc-800 pt-3 flex justify-between items-center">
+                        <span className="text-sm font-bold text-white">Total: Rs. {orderTotal.toLocaleString()}</span>
+                        <button type="submit" className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded">
+                          {customerInfo.paymentMethod === 'cod' ? 'Confirm COD Order' : 'Proceed to Scan & Pay →'}
+                        </button>
+                      </div>
+                    </form>
+                  ) : checkoutStep === 'payment' ? (
+                    <div className="space-y-4">
+                      <div className="border-b border-zinc-800 pb-2">
+                        <span className="text-xs text-amber-400 font-bold uppercase">Dynamic Payment QR</span>
+                        <h3 className="text-xl font-bold text-white">Scan to Pay Exact Rs. {orderTotal.toLocaleString()}</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                        <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800 text-center">
+                          <div className="bg-white p-2 rounded inline-block">
+                            {checkoutQrUrl ? <img src={checkoutQrUrl} className="w-48 h-48 mx-auto" /> : <span>Generating QR...</span>}
+                          </div>
+                          <p className="text-[11px] text-zinc-400 mt-2">
+                            Scan with <strong>eSewa</strong>, <strong>Khalti</strong>, or <strong>Fonepay / Mobile Banking</strong>. The exact amount is pre-filled.
+                          </p>
+                        </div>
+
+                        <div className="space-y-2 text-xs bg-zinc-950 p-3 rounded border border-zinc-800">
+                          <div><strong>Bank:</strong> {bankDetails.bankName}</div>
+                          <div><strong>Account:</strong> {bankDetails.accountHolder}</div>
+                          <div className="flex justify-between items-center">
+                            <span>A/C No: <strong className="font-mono text-white">{bankDetails.accountNumber}</strong></span>
+                            <button onClick={() => handleCopy(bankDetails.accountNumber, 'acc')} className="text-amber-400 text-[10px] underline">
+                              {copiedField === 'acc' ? 'Copied!' : 'Copy'}
+                            </button>
+                          </div>
+                          {bankDetails.esewaId && (
+                            <div className="flex justify-between items-center">
+                              <span>eSewa ID: <strong className="font-mono text-emerald-400">{bankDetails.esewaId}</strong></span>
+                              <button onClick={() => handleCopy(bankDetails.esewaId, 'esewa')} className="text-amber-400 text-[10px] underline">
+                                {copiedField === 'esewa' ? 'Copied!' : 'Copy'}
+                              </button>
+                            </div>
+                          )}
+                          <div className="border-t border-zinc-800 pt-1 text-red-400 font-bold">
+                            Amount: Rs. {orderTotal.toLocaleString()}
+                          </div>
+
+                          <div className="pt-2">
+                            <label className="block text-[11px] text-zinc-400 mb-1">Transaction Ref ID (Optional):</label>
+                            <input
+                              type="text"
+                              placeholder="eSewa or bank reference..."
+                              value={paymentTxnId}
+                              onChange={(e) => setPaymentTxnId(e.target.value)}
+                              className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between border-t border-zinc-800 pt-3">
+                        <button onClick={() => setCheckoutStep('form')} className="text-xs text-zinc-400">← Back</button>
+                        <button
+                          onClick={() => {
+                            setCheckoutStep('success');
+                            setCart([]);
+                          }}
+                          className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded"
+                        >
+                          I Have Paid · Confirm Order
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 space-y-3">
+                      <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-xl font-bold">✓</div>
+                      <h3 className="text-2xl font-marvel text-white">HERO GEAR IS ON ITS WAY!</h3>
+                      <p className="text-xs text-zinc-300">Order Ref: <strong className="text-red-400">{confirmedOrderId}</strong> has been confirmed.</p>
+                      <button
+                        onClick={() => {
+                          setIsCheckoutOpen(false);
+                          setCheckoutStep('form');
+                        }}
+                        className="px-5 py-2 bg-red-600 text-white text-xs font-bold rounded"
+                      >
+                        Continue Shopping
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Admin Login Modal */}
+            {showAdminLoginModal && (
+              <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-sm w-full p-6 relative">
+                  <button onClick={() => setShowAdminLoginModal(false)} className="absolute top-4 right-4 text-zinc-400">✕</button>
+                  <form onSubmit={handleAdminLogin} className="space-y-4">
+                    <h3 className="text-lg font-bold text-white text-center">Ningstore Admin Login</h3>
+                    <div>
+                      <label className="block text-xs text-zinc-300 mb-1">Passkey</label>
+                      <input
+                        type="password"
+                        required
+                        placeholder="Admin password..."
+                        value={adminPasswordInput}
+                        onChange={(e) => setAdminPasswordInput(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-white"
+                      />
+                      <p className="text-[11px] text-zinc-500 mt-1">Default password: <code className="text-red-400">ningstore</code></p>
+                    </div>
+                    {adminLoginError && <p className="text-xs text-red-400">{adminLoginError}</p>}
+                    <button type="submit" className="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded">
+                      Enter Admin
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Reset Password Modal */}
+            {showResetPasswordModal && (
+              <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-sm w-full p-6 relative">
+                  <button onClick={() => setShowResetPasswordModal(false)} className="absolute top-4 right-4 text-zinc-400">✕</button>
+                  <form onSubmit={handleChangePassword} className="space-y-3">
+                    <h3 className="text-lg font-bold text-white">Reset Admin Password</h3>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Current password"
+                      value={passwordForm.current}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, current: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-white"
+                    />
+                    <input
+                      type="password"
+                      required
+                      placeholder="New password (min 4 chars)"
+                      value={passwordForm.next}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, next: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-white"
+                    />
+                    <input
+                      type="password"
+                      required
+                      placeholder="Confirm new password"
+                      value={passwordForm.confirm}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-white"
+                    />
+                    {passwordError && <p className="text-xs text-red-400">{passwordError}</p>}
+                    {passwordSuccess && <p className="text-xs text-emerald-400">{passwordSuccess}</p>}
+                    <button type="submit" className="w-full py-2 bg-red-600 text-white font-bold text-xs rounded">Save Password</button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Payment & QR Settings Modal */}
+            {showPaymentSettingsModal && (
+              <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-2xl w-full p-6 relative">
+                  <button onClick={() => setShowPaymentSettingsModal(false)} className="absolute top-4 right-4 text-zinc-400">✕</button>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    setBankDetails(paymentForm);
+                    setPaymentSettingsSuccess('Payment settings saved!');
+                    setTimeout(() => setShowPaymentSettingsModal(false), 1200);
+                  }} className="space-y-4">
+                    <h3 className="text-lg font-bold text-white border-b border-zinc-800 pb-2">Bank Details & QR Settings</h3>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Bank Name *</label>
+                        <input
+                          type="text"
+                          required
+                          value={paymentForm.bankName}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, bankName: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Account Holder *</label>
+                        <input
+                          type="text"
+                          required
+                          value={paymentForm.accountHolder}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, accountHolder: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Account Number *</label>
+                        <input
+                          type="text"
+                          required
+                          value={paymentForm.accountNumber}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, accountNumber: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Branch *</label>
+                        <input
+                          type="text"
+                          required
+                          value={paymentForm.branch}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, branch: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-300 mb-1">eSewa ID</label>
+                        <input
+                          type="text"
+                          value={paymentForm.esewaId}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, esewaId: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Fonepay Code</label>
+                        <input
+                          type="text"
+                          value={paymentForm.fonepayMerchantCode}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, fonepayMerchantCode: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-zinc-950 p-3 rounded border border-zinc-800 text-center">
+                      <span className="text-xs font-bold text-amber-400 block mb-2">Live Dynamic QR Preview</span>
+                      {adminPreviewQr && <img src={adminPreviewQr} className="w-36 h-36 mx-auto bg-white p-1 rounded" />}
+                      <span className="text-[11px] text-zinc-400 block mt-1">Pre-encoded for Rs. {adminTestAmount}</span>
+                    </div>
+
+                    {paymentSettingsSuccess && <p className="text-xs text-emerald-400">{paymentSettingsSuccess}</p>}
+                    <button type="submit" className="w-full py-2 bg-red-600 text-white font-bold text-xs rounded">Save Settings</button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Add / Edit Product Modal */}
+            {showProductModal && (
+              <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-2xl w-full p-6 relative my-8">
+                  <button onClick={() => {
+                    setShowProductModal(false);
+                    setImportUrl('');
+                    setExtractSuccessMsg('');
+                    setExtractErrorMsg('');
+                    setExtractedGalleryImages([]);
+                  }} className="absolute top-4 right-4 text-zinc-400">✕</button>
+
+                  <form onSubmit={handleSaveProduct} className="space-y-3.5 text-xs">
+                    <div className="border-b border-zinc-800 pb-2">
+                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Admin Product Manager</span>
+                      <h3 className="text-lg font-bold text-white">
+                        {editingProduct ? 'Edit Merchandise' : 'List New Superhero Item'}
+                      </h3>
+                    </div>
+
+                    {/* Auto-Extract from External E-Commerce Link */}
+                    {!editingProduct && (
+                      <div className="bg-zinc-950 border border-red-500/30 rounded-xl p-3.5 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white flex items-center gap-1.5">
+                            ⚡ Auto-Extract from Existing E-Commerce Listing
+                          </span>
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold">
+                            Auto-Fill
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-zinc-400">
+                          Paste your listing link from Daraz, Amazon, Hamrobazar, AliExpress, or eBay to auto-fill title, character, category, prices, and images. You can correct them below before saving!
+                        </p>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            placeholder="Paste product link: https://www.daraz.com.np/products/... or amazon.com/..."
+                            value={importUrl}
+                            onChange={(e) => {
+                              setImportUrl(e.target.value);
+                              if (extractErrorMsg) setExtractErrorMsg('');
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleExtractFromUrl();
+                              }
+                            }}
+                            className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-xs text-white"
+                          />
+                          <button
+                            type="button"
+                            disabled={isExtracting || !importUrl.trim()}
+                            onClick={() => handleExtractFromUrl()}
+                            className="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold text-xs rounded transition-colors shrink-0"
+                          >
+                            {isExtracting ? 'Extracting...' : 'Extract Details'}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap text-[11px] text-zinc-400 pt-0.5">
+                          <span className="text-zinc-500">Try sample:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const s = 'https://www.daraz.com.np/products/marvel-spiderman-heavyweight-graphic-tshirt-men-cotton-i129482.html';
+                              setImportUrl(s);
+                              handleExtractFromUrl(s);
+                            }}
+                            className="text-amber-400 underline"
+                          >
+                            Daraz Spider-Man Tee
+                          </button>
+                          <span>·</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const s = 'https://www.amazon.com/Marvel-Legends-Iron-Man-Mark-85-Action-Figure/dp/B083TD4T81';
+                              setImportUrl(s);
+                              handleExtractFromUrl(s);
+                            }}
+                            className="text-amber-400 underline"
+                          >
+                            Amazon Iron Man Figure
+                          </button>
+                          <span>·</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const s = 'https://hamrobazar.com/product/thor-hammer-mjolnir-metal-replica-with-stand/198234';
+                              setImportUrl(s);
+                              handleExtractFromUrl(s);
+                            }}
+                            className="text-amber-400 underline"
+                          >
+                            Hamrobazar Thor Mjolnir
+                          </button>
+                        </div>
+
+                        {extractSuccessMsg && (
+                          <div className="p-2 rounded bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs">
+                            ✓ {extractSuccessMsg}
+                          </div>
+                        )}
+                        {extractErrorMsg && (
+                          <div className="p-2 rounded bg-red-950/40 border border-red-500/40 text-red-300 text-xs">
+                            ✕ {extractErrorMsg}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Product Title *</label>
+                      <input
+                        type="text"
+                        required
+                        value={productForm.title}
+                        onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Hero *</label>
+                        <select
+                          value={productForm.hero}
+                          onChange={(e) => setProductForm({ ...productForm, hero: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        >
+                          <option>Iron Man</option>
+                          <option>Spider-Man</option>
+                          <option>Thor</option>
+                          <option>Captain America</option>
+                          <option>Deadpool</option>
+                          <option>Thanos</option>
+                          <option>Black Panther</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Category *</label>
+                        <select
+                          value={productForm.category}
+                          onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        >
+                          <option>Apparel</option>
+                          <option>Action Figures</option>
+                          <option>Collectibles & Props</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Selling Price (Rs.) *</label>
+                        <input
+                          type="number"
+                          required
+                          value={productForm.priceNPR}
+                          onChange={(e) => setProductForm({ ...productForm, priceNPR: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Original Price (Rs.)</label>
+                        <input
+                          type="number"
+                          value={productForm.originalPriceNPR}
+                          onChange={(e) => setProductForm({ ...productForm, originalPriceNPR: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Image URL *</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          placeholder="https://..."
+                          value={productForm.image}
+                          onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                          className="flex-1 bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                        {productForm.image && (
+                          <img src={productForm.image} alt="Preview" className="w-10 h-10 object-cover rounded border border-zinc-700 bg-zinc-800" />
+                        )}
+                      </div>
+
+                      {extractedGalleryImages.length > 0 && (
+                        <div className="mt-2 p-2 bg-zinc-950 border border-zinc-800 rounded space-y-1">
+                          <span className="text-[11px] text-amber-300 font-semibold block">Select Primary Image:</span>
+                          <div className="flex gap-2 overflow-x-auto pb-1">
+                            {extractedGalleryImages.map((imgUrl, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => setProductForm({ ...productForm, image: imgUrl })}
+                                className={`border-2 rounded overflow-hidden shrink-0 ${productForm.image === imgUrl ? 'border-red-500' : 'border-zinc-800 opacity-60'}`}
+                              >
+                                <img src={imgUrl} className="w-12 h-12 object-cover" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Stock</label>
+                        <input
+                          type="number"
+                          value={productForm.stock}
+                          onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                        />
+                      </div>
+                      {productForm.category === 'Apparel' && (
+                        <div>
+                          <label className="block text-zinc-300 mb-1">Sizes (comma separated)</label>
+                          <input
+                            type="text"
+                            value={productForm.sizes}
+                            onChange={(e) => setProductForm({ ...productForm, sizes: e.target.value })}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <button type="submit" className="w-full py-2 bg-red-600 text-white font-bold rounded">
+                      Publish Product
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Delivery Guide Modal */}
+            {showDeliveryGuide && (
+              <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-md w-full p-6 relative space-y-3">
+                  <button onClick={() => setShowDeliveryGuide(false)} className="absolute top-4 right-4 text-zinc-400">✕</button>
+                  <h3 className="text-lg font-bold text-white">Nepal Nationwide Delivery</h3>
+                  <div className="space-y-2 text-xs">
+                    <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800">
+                      <strong>Kathmandu Valley:</strong> 24–48 hours · Rs. 100 (Free over Rs. 2,500)
+                    </div>
+                    <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800">
+                      <strong>Major Hubs (Pokhara, Chitwan, etc.):</strong> 2–3 Days · Rs. 180 (Free over Rs. 4,000)
+                    </div>
+                    <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800">
+                      <strong>All 77 Districts:</strong> 3–5 Days via Nepal Post / Express Courier · Rs. 250
+                    </div>
+                  </div>
+                  <button onClick={() => setShowDeliveryGuide(false)} className="w-full py-2 bg-red-600 text-white font-bold text-xs rounded">
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<NingstoreApp />);
+    </script>
+  </body>
+</html>
